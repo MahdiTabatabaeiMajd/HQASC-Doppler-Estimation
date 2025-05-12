@@ -10,7 +10,7 @@ This repository provides MATLAB implementations for adaptive Doppler spectral es
 
 ## 🧠 Overview
 
-Accurate Doppler spectral estimation is essential for evaluating blood flow, particularly during rapid systolic transitions. This toolbox implements **HQASC**, a high-resolution estimator that combines coherence-based post-filtering with eigen-decomposed Capon filtering to enhance contrast and frequency resolution, even with extremely short observation windows (e.g., **N=2**).
+Accurate Doppler spectral estimation is essential for evaluating blood flow, particularly during rapid systolic transitions. This toolbox implements **HQASC**, a high-resolution estimator that combines coherence-based post-filtering with eigen-decomposed Capon filtering to enhance contrast and frequency resolution, even with ultra short observation windows (e.g., **N=2**).
 
 Key contributions:
 - Implements multiple adaptive estimators: **Welch**, **Capon**, **Pr.Capon**, **MASC**, and **HQASC**
