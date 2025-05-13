@@ -46,7 +46,7 @@ Key contributions:
 - Tabatabaei Majd & Mohammadzadeh Asl, *IEEE TUFFC*, 2021  
   [DOI:10.1109/TUFFC.2020.3044774](https://doi.org/10.1109/TUFFC.2020.3044774)
 
-### 5. HQASC (High-Quality Adaptive Spectral Coherence)
+### 5. HQASC (High-Quality Amplitude Spectrum Capon)
 - Tabatabaei Majd et al., *Ultrasonics*, 2025  
   [DOI:10.1016/j.ultras.2025.107678](https://doi.org/10.1016/j.ultras.2025.107678)
 
