@@ -60,10 +60,10 @@ for idx = 1:length(OWs)
     nSpec = floor((frames - L) / dN) + 1;
 
     if N == 128
-        methods = {'Welch-Rect', 'Welch-Hamming'};
+        methods{idx} = {'Welch-Rect', 'Welch-Hamming'};
         Spectra = zeros(M, nSpec, 2);
     else
-        methods = {'Welch', 'Capon', 'Pr.Capon', 'MASC', 'HQASC'};
+        methods{idx} = {'Welch', 'Capon', 'Pr.Capon', 'MASC', 'HQASC'};
         Spectra = zeros(M, nSpec, 5);
     end
 
@@ -104,7 +104,7 @@ if doPlot
         velAxis = c / 2 * freqAxis / f0 / cosd(angle_deg);
 
         for k = 1:size(Spec, 3)
-            titleStr = sprintf('Method: %s | OW: %d', methods{k}, N);
+            titleStr = sprintf('Method: %s | OW: %d', methods{t}{k}, N);
             extra.figTitle = titleStr;
             plotSpectrogram(Spec(:, :, k), timeAxis, velAxis, dB_range, flipData, extra);
         end
