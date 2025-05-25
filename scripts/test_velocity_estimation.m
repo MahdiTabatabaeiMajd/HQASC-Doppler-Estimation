@@ -19,7 +19,8 @@ doPlot = true;
 
 P = 500;                        % Frequency points per spectrum
 
-rng(SNR(1) * MC);               % Set reproducible seed
+randn('state',SNR(1)*MC); %Unique but repeatable
+rand('state',SNR(1)*MC);
 
 %% --- Physical Constants ---
 f_s = 20e6;                     % Sampling frequency [Hz]
@@ -34,7 +35,7 @@ velTrue = v_z;
 
 %% --- Simulation Settings ---
 K = 33;                         % Number of fast-time samples
-Ns = 20;                        % Number of slow-time samples (flow shots)
+Ns = 8;                        % Number of slow-time samples (flow shots)
 nbrOfBlocks = 1;
 no_filt = Ns / 2;
 flowShots = ones(1, Ns);
@@ -55,7 +56,9 @@ z = exp(1i * psi * NVecAll);
 for k = 1:K
     YNoNoise(k,:) = exp(1i * phi * (k - 1)) * z;
 end
-sigPower = mean(abs(YNoNoise(:)).^2);
+%Compute signal power
+sigPower = ( YNoNoise(:)'*YNoNoise(:) )/length(YNoNoise(:));
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% --- Determine Noise Variance ---
 snrLen = length(SNR);
@@ -79,9 +82,8 @@ for k0 = 1:snrLen
         Y = YNoNoise + noise;
 
         % Spectral estimation
-        [ampEst(:,mc,k0,1), ampEst(:,mc,k0,2), ampEst(:,mc,k0,3),
-         ampEst(:,mc,k0,4), ampEst(:,mc,k0,5)] = adaptive_spectral_estimators(Y, no_filt, P, phi);
-
+        [ampEst(:,mc,k0,1), ampEst(:,mc,k0,2), ampEst(:,mc,k0,3),...
+         ampEst(:,mc,k0,4),~, ampEst(:,mc,k0,5),~] = Blocks_Methods_V1(Y, no_filt, P, phi);
         % Peak-based velocity estimation
         for ii = 1:nbrOfAlgs
             [~, idxMax] = max(ampEst(:,mc,k0,ii));
