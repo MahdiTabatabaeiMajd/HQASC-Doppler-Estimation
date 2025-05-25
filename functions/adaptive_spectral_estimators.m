@@ -110,69 +110,81 @@ for no = 1:length(omega_si)
 
     % Initialize for averaging
     R_stotal = zeros(N,N);
-    Out_FB_HR = zeros(1,K);
-    IC = zeros(1,K);
-    CF_v_MASC = zeros(1,K);
-    CF_v_HR = zeros(1,K);
 
-    for k = 1:K
-        % Windowed subarray transform
-        for q = 1:L
-            temp = Y(q:q+N-1,k) .* exp(-1i*(W_t*(k-1)+omega_si(no)*(q-1)));
-            g_in11FB{k}(1,q) = WsFB' * temp;
+    for k=1:K
+        % Forward data
+        G{k} = zeros(N,L);
+        T{k} = zeros(1,L);
+        G_S{k} = zeros(N,L);
+        G_SFB{k} = zeros(N,L);
+        for q=1:L
+            % Normal Output
+            G{k}(:,q) = Y(q:q+N-1,k).*exp(-1i*(W_t*(k-1)+omega_si(no)*(q-1)));
+
+            % Modified Output
+            g_in11FB{k}(1,q) = WsFB'*(Y(q:q+N-1,k).*exp(-1i*(W_t*(k-1)+omega_si(no)*(q-1))));
+
+            % Total Energy as Subarray
+            T{k}(1,q) = (1/N)*(Y(q:q+N-1,k)'*Y(q:q+N-1,k));
         end
+        g{k} = (mean(G{k},2));
+        IC(k) = mean(T{k},2);
 
+        %% The High Resolution CS for CF
         g_out11FB(k) = mean(g_in11FB{k},2);
-        Out_FB_HR(k) = abs(g_out11FB(k)).^2;
 
-        % Subarray total energy
-        T = zeros(1,L);
-        for q = 1:L
-            T(q) = (1/N) * (Y(q:q+N-1,k)' * Y(q:q+N-1,k));
-        end
-        IC(k) = mean(T);
+        %% Coherence Factors
+        % Zhao based CF
+        CF_v_MASC(k) = (CS_v1/(CS_v1+(1/N)*(IC(k)-CS_v1)));         %% Zhao-CF
 
-        % Non-subarray energy
-        Tt = (1/(2*N)) * (Y(1:2*N,k)' * Y(1:2*N,k));
-
-        % Forward subarray mean
-        G = zeros(N,L);
-        for q = 1:L
-            G(:,q) = Y(q:q+N-1,k).*exp(-1i*(W_t*(k-1)+omega_si(no)*(q-1)));
-        end
-        g = mean(G,2);
-        R_stotal = R_stotal + (1/K)*(g * g');
-
-        % Coherence Factors
-        CF_v_MASC(k) = (CS_v1 / (CS_v1 + (1/N) * (IC(k) - CS_v1)));
-        CF_v_HR(k) = Out_FB_HR(k) / IC(k);
     end
 
-    % HQASC
-    for kk = 1:K
-        Q = R - (CF_v_HR(kk)/sum(CF_v_HR(:))) * R_stotal;
-        Qt_FB = (Q + J * Q.' * J) / 2;
-        g_out1FB = mean(g_in11FB{kk},2);
-        g_out2FB = sqrt(abs(W_ASCFB' * RFB * W_ASCFB));
-        out1FB = g_out1FB + g_out2FB;
-        out2FB = g_out1FB - g_out2FB;
-        Out_Modified = 0.25 * abs((abs(out1FB).^2 - abs(out2FB).^2));
-        CF_vFB_B1 = Out_Modified / IC(kk);
-        HQASC(no) = HQASC(no) + abs(CF_vFB_B1 * WsFB' * g).^2;
+    %% Modified Nonliear CF With Zhao CF and LI and Digonal Loading
+
+    for kk=1:K
+
+        %% Modified High Resolution Coherence Factor
+        % Modifying Block 1
+        g_out1FB(kk) = mean(g_in11FB{kk},2);
+        g_out2FB(kk) = sqrt(abs(W_ASCFB'*RFB*W_ASCFB));
+        out1FB = g_out1FB(kk) + g_out2FB(kk);
+        out2FB = g_out1FB(kk) - g_out2FB(kk);
+        Out_Modified(kk) = 0.25*abs((abs(out1FB).^2 - abs(out2FB).^2));
+
+        % Modified High Resolution Coherence Factor, HQASC
+        CF_vFB_B1(kk) = ((Out_Modified(kk)))/(IC(kk));
+
+    end
+    %%  Calculation Power Estimation
+
+    %   Periodogram Estimation
+    P_Welch(no) = abs(e'*R*e);
+
+    %   Capon Estimation
+    P_Capon(no) = 1/abs(e'*R_inv*e);
+
+    %   Proj.Capon Estimation
+    P_P_C(no) =abs(Ws'*R*Ws);
+
+
+
+    %%
+    MASC(no)=0;
+    HQASC(no)=0;
+
+    for ii=1:K
+
+        %   MASC
+        MASC(no) = MASC(no)+abs(CF_v_MASC(ii)*Ws'*g{ii}).^2;
+
+        %   HQASC
+        HQASC(no) = HQASC(no)+abs(CF_vFB_B1(ii)*WsFB'*g{ii}).^2;
+      
     end
 
-    % Final spectrum estimates
-    P_Welch(no) = abs(e' * R * e);
-    P_Capon(no) = 1 / abs(e' * R_inv * e);
-    P_P_C(no) = abs(Ws' * R * Ws);
 
-    for ii = 1:K
-        MASC(no) = MASC(no) + abs(CF_v_MASC(ii) * Ws' * g).^2;
-    end
 end
 
-% Normalize ensemble average
-MASC = MASC / K;
-HQASC = HQASC / K;
-
+MASC=MASC/K;
+HQASC=HQASC/K;
 end
